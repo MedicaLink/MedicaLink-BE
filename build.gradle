@@ -1,0 +1,36 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.3.4'
+	id 'io.spring.dependency-management' version '1.1.6'
+}
+
+group = 'com.medicalink'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(22)
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	runtimeOnly 'org.postgresql:postgresql'
+	// This dependency includes the core HAPI-FHIR classes
+	implementation 'ca.uhn.hapi.fhir:hapi-fhir-base:7.4.2'
+	// Include the client
+	implementation 'ca.uhn.hapi.fhir:hapi-fhir-client:7.4.2'
+	// At least one "structures" JAR must also be included
+	implementation 'ca.uhn.hapi.fhir:hapi-fhir-structures-r4:7.4.2'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
