@@ -18,7 +18,6 @@ public class AppUserDetails implements UserDetails {
         authorities = user.getRoles().stream()
                 .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
                 .collect(Collectors.toList());
-        System.out.println("USER LOGS " + user.getRoles().toString());
     }
 
     @Override
