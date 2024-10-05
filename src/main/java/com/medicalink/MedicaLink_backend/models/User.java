@@ -1,17 +1,12 @@
 package com.medicalink.MedicaLink_backend.models;
 
+import com.medicalink.MedicaLink_backend.utils.enums.UserRoles;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Entity
 public class User {
@@ -29,11 +24,12 @@ public class User {
     @Column(name = "updated_at")
     private Date updatedAt;
 
-    private List<String> roles;
+    @Enumerated
+    private List<UserRoles> roles;
 
     public User() {}
 
-    public User(String userName, String password, List<String> roles) {
+    public User(String userName, String password, List<UserRoles> roles) {
         this.userName = userName;
         this.password = password;
         this.roles = roles;
@@ -71,11 +67,11 @@ public class User {
         this.userName = userName;
     }
 
-    public List<String> getRoles() {
+    public List<UserRoles> getRoles() {
         return roles;
     }
 
-    public void setRoles(List<String> roles) {
+    public void setRoles(List<UserRoles> roles) {
         this.roles = roles;
     }
 

@@ -1,6 +1,7 @@
 package com.medicalink.MedicaLink_backend.config;
 
 import com.medicalink.MedicaLink_backend.services.JwtService;
+import com.medicalink.MedicaLink_backend.utils.HttpExceptions.UnAuthorizedException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -36,6 +37,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
 
+    /**
+     * Validates the user token and sets the security context
+     * @param request the incoming request
+     * @param response the outgoing response
+     * @param filterChain the filter chain the request is going through
+     */
     @Override
     protected void doFilterInternal(
             @Nonnull HttpServletRequest request,
@@ -44,13 +51,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
         final String authHeader = request.getHeader("Authorization");
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        final String requestUri = request.getRequestURI();
+        if(requestUri.startsWith("/auth")) {
+            System.out.println("PUBLIC ENDPOINT");
             filterChain.doFilter(request, response);
-            System.out.println("AUTHENTICATION ERROR doesn't contain the bearer");
             return;
         }
 
         try {
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                System.out.println("AUTHENTICATION ERROR doesn't contain the bearer");
+                throw new UnAuthorizedException("Doesn't contain the bearer");
+            }
+
             final String jwt = authHeader.substring(7);
             final String userName = jwtService.extractUsername(jwt);
 

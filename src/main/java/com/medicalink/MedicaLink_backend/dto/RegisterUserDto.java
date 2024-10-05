@@ -1,5 +1,7 @@
 package com.medicalink.MedicaLink_backend.dto;
 
+import com.medicalink.MedicaLink_backend.utils.enums.UserRoles;
+
 import java.util.List;
 
 public class RegisterUserDto {
@@ -7,30 +9,32 @@ public class RegisterUserDto {
 
     private String password;
 
-    public List<String> getRoles() {
+    private List<UserRoles> roles;
+
+    public List<UserRoles> getRoles() {
         return roles;
     }
 
-    public RegisterUserDto setRoles(List<String> roles) {
+    public RegisterUserDto setRoles(List<UserRoles> roles) {
         this.roles = roles;
         return this;
     }
-
-    private List<String> roles;
 
     public String getUserName() {
         return userName;
     }
 
-    public void setUserName(String userName) {
+    public RegisterUserDto setUserName(String userName) {
         this.userName = userName;
+        return this;
     }
 
     public String getPassword() {
         return password;
     }
 
-    public void setPassword(String password) {
+    public RegisterUserDto setPassword(String password) {
         this.password = password;
+        return this;
     }
 }

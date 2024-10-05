@@ -1,13 +1,8 @@
 package com.medicalink.MedicaLink_backend.controllers;
 
-import com.medicalink.MedicaLink_backend.dto.LoginResponse;
-import com.medicalink.MedicaLink_backend.dto.LoginUserDto;
-import com.medicalink.MedicaLink_backend.dto.RegisterResponse;
-import com.medicalink.MedicaLink_backend.dto.RegisterUserDto;
-import com.medicalink.MedicaLink_backend.models.AppUserDetails;
+import com.medicalink.MedicaLink_backend.dto.*;
 import com.medicalink.MedicaLink_backend.models.User;
 import com.medicalink.MedicaLink_backend.services.AuthenticationService;
-import com.medicalink.MedicaLink_backend.services.JwtService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,11 +12,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/auth")
 @RestController
 public class AuthenticationController {
-    private final JwtService jwtService;
     private final AuthenticationService authenticationService;
 
-    public AuthenticationController(JwtService jwtService, AuthenticationService authenticationService) {
-        this.jwtService = jwtService;
+    public AuthenticationController(AuthenticationService authenticationService) {
         this.authenticationService = authenticationService;
     }
 
@@ -36,15 +29,15 @@ public class AuthenticationController {
         return ResponseEntity.ok(registerResponse);
     }
 
+    @PostMapping("/refresh")
+    public ResponseEntity<LoginResponse> refreshToken(@RequestBody RefreshTokenDto input) {
+        LoginResponse response = authenticationService.refreshToken(input.getRefreshToken());
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> authenticate(@RequestBody LoginUserDto input) {
-        User authenticatedUser = authenticationService.authenticate(input);
-
-        String jwtToken = jwtService.generateToken(new AppUserDetails(authenticatedUser));
-
-        LoginResponse loginResponse = new LoginResponse().setToken(jwtToken)
-                .setExpiresIn(jwtService.getExpirationTime());
-
+        LoginResponse loginResponse = authenticationService.authenticate(input);
         return ResponseEntity.ok(loginResponse);
     }
 }
