@@ -17,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.UUID;
 
 @Service
 public class AuthenticationService {
@@ -57,8 +58,8 @@ public class AuthenticationService {
         return userRepository.save(user);
     }
 
-    public Long getNextSessionId() {
-        return sessionRepository.findNextGeneratedId();
+    public UUID getNextSessionId() {
+        return UUID.randomUUID();
     }
 
     public void saveLoginRecord(UserSession loginRecord) {
@@ -70,9 +71,9 @@ public class AuthenticationService {
      * @param refreshToken the refresh token
      */
     public LoginResponse refreshToken(String refreshToken) {
-        long recordId;
+        UUID recordId;
         try {
-            recordId = Long.parseLong(jwtService.extractClaim(refreshToken, Claims::getId));
+            recordId = UUID.fromString(jwtService.extractClaim(refreshToken, Claims::getId));
         } catch (NumberFormatException e) {
             throw new RuntimeException("Malformed session data");
         }
@@ -117,11 +118,13 @@ public class AuthenticationService {
         );
 
         User authenticatedUser = userRepository.findByUserName(input.getUserName())
-                .orElseThrow();
+                .orElseThrow(
+                        () -> new NotFoundException("User doesn't exist")
+                );
 
         String jwtToken = jwtService.generateToken(new AppUserDetails(authenticatedUser));
 
-        Long refreshTokenId = getNextSessionId();
+        UUID refreshTokenId = getNextSessionId();
         String refreshToken = jwtService.generateRefreshToken(refreshTokenId, authenticatedUser.getId());
 
         saveLoginRecord(
@@ -130,9 +133,9 @@ public class AuthenticationService {
                         refreshToken,
                         jwtService.getTokenExpirationDate(jwtService.getRefreshTokenExpirationTime()),
                         false
-                )
+                ).setId(refreshTokenId)
         );
-
+        System.out.println("GOING TO authenticate");
         return new LoginResponse().setToken(jwtToken)
                 .setRefreshToken(refreshToken)
                 .setExpiresIn(jwtService.getExpirationTime());

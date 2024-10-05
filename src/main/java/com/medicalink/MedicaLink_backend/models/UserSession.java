@@ -1,9 +1,6 @@
 package com.medicalink.MedicaLink_backend.models;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -13,9 +10,10 @@ import java.util.UUID;
 @Entity
 public class UserSession {
     @Id
-    @GeneratedValue
-    private Long id;
+    private UUID id;
     private UUID userId;
+
+    @Lob
     private String refreshToken;
     private Date expiresAt;
     private boolean revoked = false;
@@ -37,12 +35,13 @@ public class UserSession {
         this.revoked = revoked;
     }
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public UserSession setId(UUID id) {
         this.id = id;
+        return this;
     }
 
     public UUID getUserId() {

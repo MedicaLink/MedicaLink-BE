@@ -22,15 +22,17 @@ public class RegisterUserDto {
         return userName;
     }
 
-    public void setUserName(String userName) {
+    public RegisterUserDto setUserName(String userName) {
         this.userName = userName;
+        return this;
     }
 
     public String getPassword() {
         return password;
     }
 
-    public void setPassword(String password) {
+    public RegisterUserDto setPassword(String password) {
         this.password = password;
+        return this;
     }
 }

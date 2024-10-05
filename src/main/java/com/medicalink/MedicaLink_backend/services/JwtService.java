@@ -24,10 +24,10 @@ public class JwtService {
     @Value("${security.jwt.secret-key}")
     private String secretKey;
 
-    @Value("${security.jwt.expiration-time} * 60 * 60 * 1000")
+    @Value("#{${security.jwt.expiration-time} * 60 * 60 * 1000}")
     private long jwtExpiration;
 
-    @Value("${security.jwt.refresh-expiration-time} * 60 * 60 * 1000")
+    @Value("#{${security.jwt.refresh-expiration-time} * 60 * 60 * 1000}")
     private long refreshJwtExpiration;
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
@@ -56,7 +56,7 @@ public class JwtService {
      * Generates a token with the default claims
      * @param userId id of the user
      */
-    public String generateRefreshToken(Long tokenId, UUID userId) {
+    public String generateRefreshToken(UUID tokenId, UUID userId) {
         return generateRefreshToken(new HashMap<>(), tokenId, userId);
     }
 
@@ -65,7 +65,7 @@ public class JwtService {
      * @param extraClaims the extra claims
      * @param userId id of the user
      */
-    public String generateRefreshToken(Map<String, Object> extraClaims, Long tokenId, UUID userId) {
+    public String generateRefreshToken(Map<String, Object> extraClaims, UUID tokenId, UUID userId) {
         extraClaims.put("userId", userId);
         extraClaims.put("recordId", tokenId);
         return buildToken(extraClaims, null, refreshJwtExpiration, true);

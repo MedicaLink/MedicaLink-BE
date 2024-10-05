@@ -51,13 +51,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
         final String authHeader = request.getHeader("Authorization");
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        final String requestUri = request.getRequestURI();
+        if(requestUri.startsWith("/auth")) {
+            System.out.println("PUBLIC ENDPOINT");
             filterChain.doFilter(request, response);
-            System.out.println("AUTHENTICATION ERROR doesn't contain the bearer");
-            throw new UnAuthorizedException("Doesn't contain the bearer");
+            return;
         }
 
         try {
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                System.out.println("AUTHENTICATION ERROR doesn't contain the bearer");
+                throw new UnAuthorizedException("Doesn't contain the bearer");
+            }
+
             final String jwt = authHeader.substring(7);
             final String userName = jwtService.extractUsername(jwt);
 
