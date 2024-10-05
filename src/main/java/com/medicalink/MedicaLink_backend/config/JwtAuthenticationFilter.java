@@ -1,6 +1,7 @@
 package com.medicalink.MedicaLink_backend.config;
 
 import com.medicalink.MedicaLink_backend.services.JwtService;
+import com.medicalink.MedicaLink_backend.utils.HttpExceptions.UnAuthorizedException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -36,6 +37,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
 
+    /**
+     * Validates the user token and sets the security context
+     * @param request the incoming request
+     * @param response the outgoing response
+     * @param filterChain the filter chain the request is going through
+     */
     @Override
     protected void doFilterInternal(
             @Nonnull HttpServletRequest request,
@@ -47,7 +54,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             System.out.println("AUTHENTICATION ERROR doesn't contain the bearer");
-            return;
+            throw new UnAuthorizedException("Doesn't contain the bearer");
         }
 
         try {

@@ -22,7 +22,7 @@ public class ApplicationConfiguration {
     }
 
     @Bean
-    UserDetailsService userDetailsService() {
+    public UserDetailsService userDetailsService() {
         return username -> {
             User user = userRepository.findByUserName(username)
                     .orElseThrow(() -> new UsernameNotFoundException("User not found"));
@@ -32,7 +32,7 @@ public class ApplicationConfiguration {
     }
 
     @Bean
-    BCryptPasswordEncoder passwordEncoder() {
+    public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
