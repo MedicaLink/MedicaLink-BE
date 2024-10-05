@@ -120,10 +120,17 @@ public class JwtService {
         return jwtExpiration;
     }
 
+    /**
+     * get the expiration duration of the refresh token
+     */
     public long getRefreshTokenExpirationTime() {
         return refreshJwtExpiration;
     }
 
+    /**
+     * get teh expiration date calculated from current time
+     * @param expirationTime the token duration
+     */
     public Date getTokenExpirationDate(long expirationTime) {
         return new Date(System.currentTimeMillis() + expirationTime);
     }

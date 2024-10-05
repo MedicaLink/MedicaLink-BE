@@ -58,10 +58,17 @@ public class AuthenticationService {
         return userRepository.save(user);
     }
 
+    /**
+     * Generates a unique UUID for the session
+     */
     public UUID getNextSessionId() {
         return UUID.randomUUID();
     }
 
+    /**
+     * Saves a login record including session information
+     * @param loginRecord the login record
+     */
     public void saveLoginRecord(UserSession loginRecord) {
         sessionRepository.save(loginRecord);
     }

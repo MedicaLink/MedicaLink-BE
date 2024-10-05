@@ -1,9 +1,6 @@
 package com.medicalink.MedicaLink_backend.controllers;
 
-import com.medicalink.MedicaLink_backend.dto.LoginResponse;
-import com.medicalink.MedicaLink_backend.dto.LoginUserDto;
-import com.medicalink.MedicaLink_backend.dto.RegisterResponse;
-import com.medicalink.MedicaLink_backend.dto.RegisterUserDto;
+import com.medicalink.MedicaLink_backend.dto.*;
 import com.medicalink.MedicaLink_backend.models.User;
 import com.medicalink.MedicaLink_backend.services.AuthenticationService;
 import org.springframework.http.ResponseEntity;
@@ -33,8 +30,8 @@ public class AuthenticationController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<LoginResponse> refreshToken(@RequestBody String refreshToken) {
-        LoginResponse response = authenticationService.refreshToken(refreshToken);
+    public ResponseEntity<LoginResponse> refreshToken(@RequestBody RefreshTokenDto input) {
+        LoginResponse response = authenticationService.refreshToken(input.getRefreshToken());
         return ResponseEntity.ok(response);
     }
 

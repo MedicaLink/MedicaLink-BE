@@ -4,6 +4,7 @@ import com.medicalink.MedicaLink_backend.dto.RegisterUserDto;
 import com.medicalink.MedicaLink_backend.models.User;
 import com.medicalink.MedicaLink_backend.repositories.UserRepository;
 import com.medicalink.MedicaLink_backend.repositories.UserSessionRepository;
+import com.medicalink.MedicaLink_backend.utils.enums.UserRoles;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -51,7 +52,7 @@ class AuthenticationServiceTest {
         final RegisterUserDto mockInput = new RegisterUserDto()
                 .setUserName("userName")
                 .setPassword("password")
-                .setRoles(List.of("user"));
+                .setRoles(List.of(UserRoles.PATIENT));
         final User mockUser = new User(
                 mockInput.getUserName(),
                 mockInput.getPassword(),

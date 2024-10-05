@@ -31,6 +31,10 @@ public class UserService {
                         ));
     }
 
+    /**
+     * Retrieves a single user from the database
+     * @param id the id of the user
+     */
     public User getUser(UUID id) {
         return userRepository.findById(id)
                 .orElseThrow(() ->
