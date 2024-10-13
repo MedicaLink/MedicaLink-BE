@@ -2,6 +2,7 @@ package com.medicalink.MedicaLink_backend.config;
 
 import com.medicalink.MedicaLink_backend.services.JwtService;
 import com.medicalink.MedicaLink_backend.utils.HttpExceptions.UnAuthorizedException;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,7 +23,6 @@ import java.io.IOException;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final HandlerExceptionResolver handlerExceptionResolver;
-
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
 
@@ -65,7 +65,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
             final String jwt = authHeader.substring(7);
+            final String sessionId = jwtService.extractClaim(jwt, Claims::getId);
             final String userName = jwtService.extractUsername(jwt);
+            SessionData.setToken(jwt);
+            SessionData.setSessionId(sessionId);
+            System.out.println("Token: " + jwt + " sessionId: " + sessionId);
 
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -89,6 +93,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             System.out.println("AUTHENTICATION ERROR exception thrown");
             e.printStackTrace();
             handlerExceptionResolver.resolveException(request, response, null, e);
+        } finally {
+            SessionData.clearAll();
         }
     }
 }

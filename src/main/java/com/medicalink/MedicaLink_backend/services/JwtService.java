@@ -39,8 +39,10 @@ public class JwtService {
      * Generates a token with default claims
      * @param userDetails Spring security UserDetails object
      */
-    public String generateToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails);
+    public String generateToken(UserDetails userDetails, UUID tokenId) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("sessionId", tokenId);
+        return generateToken(claims, userDetails);
     }
 
     /**
@@ -67,7 +69,7 @@ public class JwtService {
      */
     public String generateRefreshToken(Map<String, Object> extraClaims, UUID tokenId, UUID userId) {
         extraClaims.put("userId", userId);
-        extraClaims.put("recordId", tokenId);
+        extraClaims.put("sessionId", tokenId);
         return buildToken(extraClaims, null, refreshJwtExpiration, true);
     }
 
@@ -84,11 +86,9 @@ public class JwtService {
             boolean isRefreshToken
     ) {
         var tokenBuilder = Jwts
-                .builder().claims(extraClaims);
-        if(isRefreshToken) {
-            tokenBuilder
-                    .id(extraClaims.get("recordId").toString());
-        } else {
+                .builder().claims(extraClaims)
+                .id(extraClaims.get("sessionId").toString());
+        if (!isRefreshToken) {
             tokenBuilder
                     .subject(userDetails.getUsername())
                     .claim("roles", userDetails.getAuthorities().stream()

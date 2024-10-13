@@ -1,5 +1,9 @@
 package com.medicalink.MedicaLink_backend.controllers;
 
+import com.medicalink.MedicaLink_backend.dto.BaseResponse;
+import com.medicalink.MedicaLink_backend.services.AuthenticationService;
+import com.medicalink.MedicaLink_backend.utils.ApiError;
+import com.medicalink.MedicaLink_backend.utils.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,6 +14,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/me")
 @RestController
 public class TestController {
+    private final AuthenticationService authenticationService;
+
+    public TestController(AuthenticationService authenticationService) {
+        this.authenticationService = authenticationService;
+    }
 
     @GetMapping("/test")
     public ResponseEntity<String> testGet() {
@@ -55,5 +64,11 @@ public class TestController {
     @PostMapping("/admin")
     public ResponseEntity<String> testPostAdmin() {
         return ResponseEntity.ok("Able to access /admin");
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<BaseResponse, ApiError>> logout() {
+        var response = authenticationService.logOut();
+        return ResponseEntity.ok(new ApiResponse<>(response, null));
     }
 }

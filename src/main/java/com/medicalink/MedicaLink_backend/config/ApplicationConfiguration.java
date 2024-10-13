@@ -1,5 +1,6 @@
 package com.medicalink.MedicaLink_backend.config;
 
+import com.medicalink.MedicaLink_backend.fhir.FhirManager;
 import com.medicalink.MedicaLink_backend.models.AppUserDetails;
 import com.medicalink.MedicaLink_backend.models.User;
 import com.medicalink.MedicaLink_backend.repositories.UserRepository;
@@ -42,12 +43,17 @@ public class ApplicationConfiguration {
     }
 
     @Bean
-    AuthenticationProvider authenticationProvider() {
+    public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
 
         authProvider.setUserDetailsService(userDetailsService());
         authProvider.setPasswordEncoder(passwordEncoder());
 
         return authProvider;
+    }
+
+    @Bean
+    public FhirManager fhirManager() {
+        return new FhirManager();
     }
 }
