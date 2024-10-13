@@ -3,6 +3,7 @@ package com.medicalink.MedicaLink_backend.dto;
 public class LoginResponse {
     private String token;
     private String refreshToken;
+    private Long expiresIn;
 
     public LoginResponse setToken(String token) {
         this.token = token;
@@ -30,6 +31,4 @@ public class LoginResponse {
         this.expiresIn = expiresIn;
         return this;
     }
-
-    private Long expiresIn;
 }

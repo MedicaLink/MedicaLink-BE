@@ -19,20 +19,27 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 
     @Override
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-        return buildResponseEntity(new ApiError(HttpStatus.BAD_REQUEST, ex.getMessage()));
+        return buildResponseEntity(new ApiError(ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler({NotFoundException.class, UnAuthorizedException.class})
     private ResponseEntity<Object> handleNotFoundException(HttpException exception) {
-        return buildResponseEntity(new ApiError(exception.getStatus(), exception.getMessage()));
+        return buildResponseEntity(new ApiError(exception.getMessage()), exception.getStatus());
     }
 
     @ExceptionHandler(ExpiredJwtException.class)
     private ResponseEntity<Object> handleTokenExpiration(ExpiredJwtException exception) {
-        return buildResponseEntity(new ApiError(HttpStatus.UNAUTHORIZED, exception.getMessage()));
+        return buildResponseEntity(new ApiError(exception.getMessage()), HttpStatus.UNAUTHORIZED);
     }
 
-    private ResponseEntity<Object> buildResponseEntity(ApiError apiError) {
-        return new ResponseEntity<>(apiError, apiError.getStatus());
+    @ExceptionHandler(Exception.class)
+    private ResponseEntity<Object> handleOther(Exception exception) {
+        exception.printStackTrace();
+        return buildResponseEntity(new ApiError(exception.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    private ResponseEntity<Object> buildResponseEntity(ApiError apiError, HttpStatus status) {
+        var response = new ApiResponse<Object,ApiError>(null, apiError);
+        return new ResponseEntity<>(response, status);
     }
 }

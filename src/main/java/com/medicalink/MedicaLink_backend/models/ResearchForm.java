@@ -21,10 +21,6 @@ public class ResearchForm {
     private String occupation;
     private String finances;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     private String patientId;
 
     @CreationTimestamp
@@ -35,11 +31,11 @@ public class ResearchForm {
     @Column(name = "updated_at")
     private Date updatedAt;
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public ResearchForm setId(long id) {
+    public ResearchForm setId(Long id) {
         this.id = id;
         return this;
     }

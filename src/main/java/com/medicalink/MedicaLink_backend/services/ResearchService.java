@@ -4,10 +4,13 @@ import com.medicalink.MedicaLink_backend.dto.AddResearchFormDto;
 import com.medicalink.MedicaLink_backend.fhir.FhirManager;
 import com.medicalink.MedicaLink_backend.models.ResearchForm;
 import com.medicalink.MedicaLink_backend.repositories.ResearchRepository;
+import com.medicalink.MedicaLink_backend.utils.HttpExceptions.NotFoundException;
 import org.hl7.fhir.r4.model.*;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Service
 public class ResearchService {
 
     private final ResearchRepository researchRepo;
@@ -20,7 +23,14 @@ public class ResearchService {
     }
 
     public ResearchForm addResearchForm(AddResearchFormDto data) {
-        // Query the practitioner using the userId
+        // Query the patient using patient Id and see if exists
+        Patient patient = fhirManager.getClient().read().resource(Patient.class)
+                .withId(data.getPatientId())
+                .execute();
+        if(patient == null) {
+            throw new NotFoundException("Patient does not exist");
+        }
+
         Encounter encounter = new Encounter()
                 .setClass_(new Coding("MedicaLink","inpatient","inpatient"))
                 .setStatus(Encounter.EncounterStatus.FINISHED)
