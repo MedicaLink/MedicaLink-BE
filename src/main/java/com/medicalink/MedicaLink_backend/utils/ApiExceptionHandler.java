@@ -3,6 +3,7 @@ package com.medicalink.MedicaLink_backend.utils;
 import com.medicalink.MedicaLink_backend.utils.HttpExceptions.HttpException;
 import com.medicalink.MedicaLink_backend.utils.HttpExceptions.NotFoundException;
 import com.medicalink.MedicaLink_backend.utils.HttpExceptions.UnAuthorizedException;
+import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -24,6 +25,11 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler({NotFoundException.class, UnAuthorizedException.class})
     private ResponseEntity<Object> handleNotFoundException(HttpException exception) {
         return buildResponseEntity(new ApiError(exception.getStatus(), exception.getMessage()));
+    }
+
+    @ExceptionHandler(ExpiredJwtException.class)
+    private ResponseEntity<Object> handleTokenExpiration(ExpiredJwtException exception) {
+        return buildResponseEntity(new ApiError(HttpStatus.UNAUTHORIZED, exception.getMessage()));
     }
 
     private ResponseEntity<Object> buildResponseEntity(ApiError apiError) {
