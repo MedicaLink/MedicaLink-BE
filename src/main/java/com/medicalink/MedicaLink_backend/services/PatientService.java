@@ -68,7 +68,7 @@ public class PatientService {
         List<String> patientIds = params
                 .map(PatientSearchParams::getPatientId)
                 .collect(Collectors.toList());
-        System.out.println("PatientIDs: " + patientIds.toString());
+        System.out.println("PatientIDs: " + patientIds);
 
         return (Bundle) fhirManager.getClient().search()
                 .forResource(Patient.class)
