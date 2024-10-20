@@ -16,15 +16,17 @@ public class BaseResponse {
         return message;
     }
 
-    public void setMessage(String message) {
+    public BaseResponse setMessage(String message) {
         this.message = message;
+        return this;
     }
 
     public boolean isSuccess() {
         return success;
     }
 
-    public void setSuccess(boolean success) {
+    public BaseResponse setSuccess(boolean success) {
         this.success = success;
+        return this;
     }
 }

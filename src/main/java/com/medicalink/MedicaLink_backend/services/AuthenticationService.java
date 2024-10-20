@@ -11,6 +11,7 @@ import com.medicalink.MedicaLink_backend.repositories.UserSessionRepository;
 import com.medicalink.MedicaLink_backend.utils.HttpExceptions.NotFoundException;
 import com.medicalink.MedicaLink_backend.utils.HttpExceptions.UnAuthorizedException;
 import com.medicalink.MedicaLink_backend.utils.enums.UserRoles;
+import io.jsonwebtoken.Claims;
 import org.hl7.fhir.r4.model.HumanName;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Practitioner;
@@ -131,9 +132,10 @@ public class AuthenticationService {
      * @param refreshToken the refresh token
      */
     public LoginResponse refreshToken(String refreshToken) {
+        String sid = jwtService.extractClaim(refreshToken, Claims::getId);
         UUID sessionId;
         try {
-            sessionId = UUID.fromString(SessionData.getSessionId());
+            sessionId = UUID.fromString(sid);
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("Malformed session data");
         }
