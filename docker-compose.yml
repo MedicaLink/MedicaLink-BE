@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  fhir:
+    container_name: fhir-remote
+    image: "hapiproject/hapi:latest"
+    ports:
+      - "8080:8080"
+    configs:
+      - source: hapi
+        target: /app/config/application.yaml
+
+configs:
+  hapi:
+     file: ./remote.application.yml
