@@ -1,8 +1,8 @@
 package com.medicalink.MedicaLink_backend.services;
 
-import com.medicalink.MedicaLink_backend.dto.LoginResponse;
-import com.medicalink.MedicaLink_backend.dto.LoginUserDto;
-import com.medicalink.MedicaLink_backend.dto.RegisterUserDto;
+import com.medicalink.MedicaLink_backend.config.SessionData;
+import com.medicalink.MedicaLink_backend.dto.*;
+import com.medicalink.MedicaLink_backend.fhir.FhirManager;
 import com.medicalink.MedicaLink_backend.models.AppUserDetails;
 import com.medicalink.MedicaLink_backend.models.User;
 import com.medicalink.MedicaLink_backend.models.UserSession;
@@ -10,13 +10,19 @@ import com.medicalink.MedicaLink_backend.repositories.UserRepository;
 import com.medicalink.MedicaLink_backend.repositories.UserSessionRepository;
 import com.medicalink.MedicaLink_backend.utils.HttpExceptions.NotFoundException;
 import com.medicalink.MedicaLink_backend.utils.HttpExceptions.UnAuthorizedException;
+import com.medicalink.MedicaLink_backend.utils.enums.UserRoles;
 import io.jsonwebtoken.Claims;
+import org.hl7.fhir.r4.model.HumanName;
+import org.hl7.fhir.r4.model.Identifier;
+import org.hl7.fhir.r4.model.Practitioner;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -25,23 +31,24 @@ public class AuthenticationService {
     private final UserSessionRepository sessionRepository;
 
     private final JwtService jwtService;
-
     private final PasswordEncoder passwordEncoder;
-
     private final AuthenticationManager authenticationManager;
+    private final FhirManager fhirManager;
 
     public AuthenticationService(
             UserRepository userRepository,
             UserSessionRepository sessionRepository,
             AuthenticationManager authenticationManager,
             JwtService jwtService,
-            PasswordEncoder passwordEncoder
+            PasswordEncoder passwordEncoder,
+            FhirManager fhirManager
     ) {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.userRepository = userRepository;
         this.sessionRepository = sessionRepository;
         this.passwordEncoder = passwordEncoder;
+        this.fhirManager = fhirManager;
     }
 
     /**
@@ -56,6 +63,53 @@ public class AuthenticationService {
         );
 
         return userRepository.save(user);
+    }
+
+    /**
+     * Registers a new practitioner
+     * @param input FE Payload
+     */
+    public User registerPractitioner(RegisterPractitionerDto input) throws Exception {
+        User user;
+        if(input.getUserId() == null) {
+            // If the doesn't exist create the user
+            user = new User(
+                    input.getUserName(),
+                    passwordEncoder.encode(input.getPassword()),
+                    new ArrayList<>()
+            );
+        } else {
+            user = userRepository.findById(input.getUserId())
+                    .orElseThrow(() -> new NotFoundException("User Not Found, wrong Id"));
+        }
+
+        var userRoles = user.getRoles();
+        if(userRoles.contains(UserRoles.PRACTITIONER)) {
+            throw new Exception("This practitioner already exists");
+        }
+        userRoles.add(UserRoles.PRACTITIONER);
+
+        user = userRepository.save(user);
+        if(user.getId() == null) {
+            throw new Exception("Could not create account");
+        }
+
+        // Create the practitioner resource
+        List<Identifier> identifiers = List.of(
+                new Identifier().setSystem("MedicaLink").setValue(input.getNic()),
+                new Identifier().setSystem("MedicaLink").setValue(user.getId().toString()));
+        HumanName name = new HumanName().addGiven(input.getGivenName())
+                .setFamily(input.getFamilyName());
+        Practitioner practitioner = new Practitioner()
+                .setActive(true).setIdentifier(identifiers)
+                .setName(List.of(name));
+
+        fhirManager.getClient().create()
+                .resource(practitioner)
+                .encodedJson()
+                .prettyPrint()
+                .execute();
+        return user;
     }
 
     /**
@@ -78,14 +132,15 @@ public class AuthenticationService {
      * @param refreshToken the refresh token
      */
     public LoginResponse refreshToken(String refreshToken) {
-        UUID recordId;
+        String sid = jwtService.extractClaim(refreshToken, Claims::getId);
+        UUID sessionId;
         try {
-            recordId = UUID.fromString(jwtService.extractClaim(refreshToken, Claims::getId));
-        } catch (NumberFormatException e) {
+            sessionId = UUID.fromString(sid);
+        } catch (IllegalArgumentException e) {
             throw new RuntimeException("Malformed session data");
         }
 
-        UserSession sessionRecord = sessionRepository.findById(recordId)
+        UserSession sessionRecord = sessionRepository.findById(sessionId)
                 .orElseThrow(
                         () -> new NotFoundException("Session not found")
                 );
@@ -98,7 +153,7 @@ public class AuthenticationService {
                 .orElseThrow(() ->
                         new NotFoundException("User not found")
                 );
-        String jwtToken = jwtService.generateToken(new AppUserDetails(userDetails));
+        String jwtToken = jwtService.generateToken(new AppUserDetails(userDetails), sessionRecord.getId());
         refreshToken = jwtService.generateRefreshToken(sessionRecord.getId(), userDetails.getId());
 
         saveLoginRecord(
@@ -129,10 +184,9 @@ public class AuthenticationService {
                         () -> new NotFoundException("User doesn't exist")
                 );
 
-        String jwtToken = jwtService.generateToken(new AppUserDetails(authenticatedUser));
-
-        UUID refreshTokenId = getNextSessionId();
-        String refreshToken = jwtService.generateRefreshToken(refreshTokenId, authenticatedUser.getId());
+        UUID sessionId = getNextSessionId();
+        String jwtToken = jwtService.generateToken(new AppUserDetails(authenticatedUser), sessionId);
+        String refreshToken = jwtService.generateRefreshToken(sessionId, authenticatedUser.getId());
 
         saveLoginRecord(
                 new UserSession(
@@ -140,11 +194,23 @@ public class AuthenticationService {
                         refreshToken,
                         jwtService.getTokenExpirationDate(jwtService.getRefreshTokenExpirationTime()),
                         false
-                ).setId(refreshTokenId)
+                ).setId(sessionId)
         );
         System.out.println("GOING TO authenticate");
         return new LoginResponse().setToken(jwtToken)
                 .setRefreshToken(refreshToken)
                 .setExpiresIn(jwtService.getExpirationTime());
+    }
+
+    public BaseResponse logOut() {
+        UUID sessionId;
+        try {
+            sessionId = UUID.fromString(SessionData.getSessionId());
+        } catch (Exception e) {
+            throw new RuntimeException("Malformed session data");
+        }
+
+        sessionRepository.deleteById(sessionId);
+        return new BaseResponse("Logut successfull", true);
     }
 }
